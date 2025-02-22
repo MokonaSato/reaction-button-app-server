@@ -13,5 +13,8 @@ RUN npm install
 # アプリケーションのソースコードをコピー
 COPY . .
 
+# ポートを開放
+EXPOSE 8000
+
 # WebSocketサーバーを起動
 CMD ["node", "server.mjs"]

@@ -1,11 +1,17 @@
+import express from 'express';
+import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 
-const wss = new WebSocketServer({ port: 8000 });
+const app = express();
+const server = createServer(app);
+const wss = new WebSocketServer({ server });
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function message(message) {
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+
+  ws.on('message', (message) => {
     const parsedMessage = JSON.parse(message);
-    
+
     // 他のクライアントにブロードキャストする際に isSelf を false に設定
     const broadcastMessage = JSON.stringify({
       type: parsedMessage.type,
@@ -19,6 +25,14 @@ wss.on('connection', function connection(ws) {
       }
     });
   });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
 });
 
-console.log('WebSocket server is running on ws://127.0.0.1:8000');
+// Cloud Run は 0.0.0.0:$PORT でリッスンする必要がある
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is listening on port ${PORT}`);
+});
